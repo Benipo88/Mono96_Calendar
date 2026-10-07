@@ -1,5 +1,6 @@
 <!doctype html><html lang="ja" translate="no" class="notranslate"><head><meta charset=utf8><meta name="google" content="notranslate"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel=manifest href="manifest.json"><link rel=icon type="image/png" sizes="192x192" href="icon-192.png"><link rel=apple-touch-icon href="icon-192.png"><meta name=theme-color content="#faf9f5"><title>MONO96 Calendar</title></head><body>
 <title>MONO96 Calendar</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,700..900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
 <style>
@@ -209,6 +210,12 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
 .drow .sn{font-size:12px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .drow .mk .hb{font-size:9px;font-weight:700;border:1px solid var(--ink);border-radius:4px;padding:0 3px;line-height:14px}
 .drow mark{background:none;color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px}
+.gcal{display:flex;align-items:center;gap:10px;font-size:15px;letter-spacing:0;color:var(--ink);margin:8px 0 0;cursor:pointer}
+.gcal input{width:20px;height:20px;accent-color:var(--ink);margin:0;flex:none}
+.gbtn{font:inherit;font-size:14px;font-weight:700;color:var(--ink);padding:8px 14px;border-radius:6px;cursor:pointer;background:linear-gradient(145deg,var(--btn1),var(--btn2));border:1px solid var(--bd);box-shadow:3px 3px 6px var(--sh),-2px -2px 5px var(--hi),inset 0 1px 0 var(--hi)}
+.gbtn:active{box-shadow:inset 2px 2px 5px var(--sh),inset -2px -2px 4px var(--hi)}
+.ib.spin svg{animation:gsp 1s linear infinite}
+@keyframes gsp{to{transform:rotate(360deg)}}
 </style>
 
 <div id="bgPhoto" hidden></div>
@@ -219,6 +226,7 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
     <div class="qnav">
       <button type="button" id="qPrev" class="ib" aria-label="前の3か月"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
       <button type="button" id="qNext" class="ib" aria-label="次の3か月"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      <button type="button" id="gSyncBtn" class="ib" aria-label="Googleと つなぐ"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg></button>
       <button type="button" id="openFind" class="ib" aria-label="検索"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></button>
       <button type="button" id="openSet" class="ib" aria-label="設定"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </div>
@@ -232,6 +240,10 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
   <div class="sh-top"><div class="sh-date" id="setTitle" style="font-size:20px">設定</div><span style="flex:1"></span><button type="button" class="ib" id="setClose" aria-label="閉じる"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="sttl">予定の登録・出力</div>
   <div class="setrow"><button type="button" class="ib" id="doExport" aria-label="エクスポート"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button><label class="ib" for="impFile" aria-label="インポート"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></svg><input type="file" id="impFile" accept=".json,application/json,text/plain,application/octet-stream" class="fpick"></label></div>
+  <div class="sttl">Google カレンダー</div>
+  <div class="setrow"><button type="button" class="gbtn" id="gConnect">Googleで ログイン</button><button type="button" class="gbtn" id="gOff" hidden>はずす</button></div>
+  <div class="msg" id="gMsg"></div>
+  <div id="gCals"></div>
   <div class="sttl">テーマ</div>
   <div class="setrow"><div class="themes" role="group" aria-label="テーマ">
       <button type="button" class="sw w" id="thW" aria-label="白のテーマ"></button>
@@ -411,8 +423,19 @@ function info(s){
 let items={};    // id -> {date,plan,memo}  1日の予定
 let ranges={};   // id -> {title,memo,from,to}  期間の予定
 let store=null;
-const rangesOn=s=>Object.entries(ranges).filter(([id,r])=>r.from<=s&&s<=r.to).sort((a,b)=>a[1].from<b[1].from?-1:1);
-const itemsOn=s=>Object.entries(items).filter(([id,v])=>v.date===s).sort((a,b)=>a[0]<b[0]?-1:1);
+const GK="mono96-google";
+let G=(()=>{try{return JSON.parse(localStorage.getItem(GK)||"{}")||{}}catch(e){return {}}})();
+G.map=G.map||{}; G.gev=G.gev||{}; G.sel=G.sel||[]; G.cals=G.cals||[];
+const gSave=()=>{try{localStorage.setItem(GK,JSON.stringify(G))}catch(e){}};
+let gItems={}, gRanges={}; // Googleで書いた予定（見るだけ）。idは "g:" ではじまる
+function gRebuild(){ gItems={}; gRanges={};
+  for(const [k,v] of Object.entries(G.gev||{})){ if(v.kind==="range") gRanges["g:"+k]={title:v.title,memo:v.memo,from:v.from,to:v.to};
+    else gItems["g:"+k]={date:v.date,plan:v.title,memo:v.memo}; } }
+gRebuild();
+const isG=id=>String(id).startsWith("g:");
+const IT=id=>items[id]||gItems[id], RG=id=>ranges[id]||gRanges[id];
+const rangesOn=s=>Object.entries(ranges).concat(Object.entries(gRanges)).filter(([id,r])=>r.from<=s&&s<=r.to).sort((a,b)=>a[1].from<b[1].from?-1:1);
+const itemsOn=s=>Object.entries(items).concat(Object.entries(gItems)).filter(([id,v])=>v.date===s).sort((a,b)=>a[0]<b[0]?-1:1);
 function esc(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
@@ -428,7 +451,7 @@ function render(){
   const lead=new Date(Date.UTC(qY,qM-1,1)).getUTCDay();
   // 重なる期間の予定は、別の段（レーン）にならべる
   const laneOf={}; const laneEnd=[];
-  Object.entries(ranges).sort((a,b)=>a[1].from<b[1].from?-1:a[1].from>b[1].from?1:(a[1].to>b[1].to?-1:1)).forEach(([id,r])=>{
+  Object.entries(ranges).concat(Object.entries(gRanges)).sort((a,b)=>a[1].from<b[1].from?-1:a[1].from>b[1].from?1:(a[1].to>b[1].to?-1:1)).forEach(([id,r])=>{
     let L=laneEnd.findIndex(e=>e<r.from); if(L<0){L=laneEnd.length;laneEnd.push(r.to);} else laneEnd[L]=r.to; laneOf[id]=L; });
   const rowLanes={};
   let idx=lead;
@@ -490,16 +513,20 @@ function showPage(){
     setMode(mode); $("inFrom").value=cur; $("inTo").value=cur; $("inPlan").value=""; $("inMemo").value="";
   } else {
     const p=pages[pi]; $("inFrom").value=cur; $("inTo").value=cur;
-    if(p.kind==="item"){ const v=items[p.id]; setMode("day"); $("inPlan").value=v.plan||""; $("inMemo").value=v.memo||""; }
-    else { const r=ranges[p.id]; setMode("range"); $("inFrom").value=r.from; $("inTo").value=r.to; $("inPlan").value=r.title||""; $("inMemo").value=r.memo||""; }
+    if(p.kind==="item"){ const v=IT(p.id); setMode("day"); $("inPlan").value=v.plan||""; $("inMemo").value=v.memo||""; }
+    else { const r=RG(p.id); setMode("range"); $("inFrom").value=r.from; $("inTo").value=r.to; $("inPlan").value=r.title||""; $("inMemo").value=r.memo||""; }
   }
   showDates(); $("msg").textContent=""; snap0=formState();
+  const ro=!isNew&&isG(pages[pi].id);
+  ["inPlan","inMemo","inFrom","inTo","mDay","mRange"].forEach(i=>{$(i).disabled=ro;});
+  if(ro){ $("clear").hidden=true; $("msg").textContent="Googleで書いた予定です（ここでは なおせません）"; }
 }
 function showDates(){ const f=v=>v?`${Number(v.slice(5,7))}/${Number(v.slice(8,10))}`:"—";
   $("tFrom").textContent=f($("inFrom").value); $("tTo").textContent=f($("inTo").value); }
 ["inFrom","inTo"].forEach(id=>{ $(id).addEventListener("input",showDates); $(id).addEventListener("change",showDates); });
 // いまのページを保存する。保存できないときは false
 async function commit(){
+  if(pi<pages.length&&isG(pages[pi].id)) return true;
   if(formState()===snap0) return true;
   const plan=$("inPlan").value.trim(), memo=$("inMemo").value.trim();
   const isNew=pi>=pages.length, p=isNew?null:pages[pi];
@@ -530,9 +557,9 @@ function showList(){
   pages.forEach((p,i)=>{
     const b=document.createElement("button"); b.type="button"; b.className="drow";
     let mk, nm, pd="";
-    if(p.kind==="item"){ const v=items[p.id]; const bd=/誕生日/.test((v.plan||"")+(v.memo||""));
+    if(p.kind==="item"){ const v=IT(p.id); const bd=/誕生日/.test((v.plan||"")+(v.memo||""));
       mk=bd?'<span class="h">♥</span>':'<span class="d"></span>'; nm=v.plan||(v.memo||"").split("\n")[0]||"（名前なし）"; }
-    else { const r=ranges[p.id]; mk='<span class="r"></span>'; nm=r.title||"（名前なし）"; pd=`${md(r.from)}〜${md(r.to)}`; }
+    else { const r=RG(p.id); mk='<span class="r"></span>'; nm=r.title||"（名前なし）"; pd=`${md(r.from)}〜${md(r.to)}`; }
     b.innerHTML=`<span class="mk">${mk}</span><span class="nm">${esc(nm)}</span>${pd?`<span class="pd">${pd}</span>`:""}<span class="go">›</span>`;
     b.addEventListener("click",()=>showEdit(i));
     box.appendChild(b);
@@ -582,7 +609,7 @@ $("dNext").addEventListener("click",()=>guarded(async()=>{ if(await commit()) sh
 // ×：いまのページの予定を削除
 $("clear").addEventListener("click",()=>guarded(async()=>{
   if(pi>=pages.length){ showPage(); return; }
-  const p=pages[pi];
+  const p=pages[pi]; if(isG(p.id)) return;
   try{
     if(p.kind==="range"){ await store.removeRange(p.id); delete ranges[p.id]; }
     else { await store.removeItem(p.id); delete items[p.id]; }
@@ -683,12 +710,12 @@ function doFind(){
   const q=kana($("fq").value.trim()); const box=$("fres"); box.innerHTML="";
   if(!q){ $("fcount").textContent=""; return; }
   const res=[];
-  for(const [id,v] of Object.entries(items)){
+  for(const [id,v] of Object.entries(items).concat(Object.entries(gItems))){
     const p=v.plan||"", m=v.memo||"";
     if(!kana(p).includes(q)&&!kana(m).includes(q)) continue;
     res.push({kind:"item",id,date:v.date,name:p||m.split("\n")[0]||"（名前なし）",memo:kana(p).includes(q)?"":snip(m,q),bd:/誕生日/.test(p+m)});
   }
-  for(const [id,r] of Object.entries(ranges)){
+  for(const [id,r] of Object.entries(ranges).concat(Object.entries(gRanges))){
     const t=r.title||"", m=r.memo||"";
     if(!kana(t).includes(q)&&!kana(m).includes(q)) continue;
     res.push({kind:"range",id,date:r.from,to:r.to,name:t||"（名前なし）",memo:kana(t).includes(q)?"":snip(m,q)});
@@ -748,6 +775,161 @@ const _si=store.saveItem, _sr=store.saveRange;
 store.saveItem=async(id,o)=>{items[id]={date:o.date,plan:o.plan,memo:o.memo};lsWrite();};
 store.saveRange=async(id,o)=>{ranges[id]={title:o.title,memo:o.memo,from:o.from,to:o.to};lsWrite();};
 render();
+
+// ===== Google カレンダーと つなぐ =====
+// MONO96 が 主人。Googleの「MONO96」カレンダーに うつしを 書く。えらんだ カレンダーの 予定は 見るだけで しまっておく
+const GCID="311817196417-03d53eflj6odc2iiqv2l0hbq3hbb9e50.apps.googleusercontent.com";
+const GSCOPE="https://www.googleapis.com/auth/calendar";
+const GAPI="https://www.googleapis.com/calendar/v3";
+let tokClient=null, gPend=null, gBusy=false, gAgain=false, gTimer=null;
+const gTokOk=()=>!!(G.tok&&G.exp>Date.now()+60e3);
+const enc=encodeURIComponent;
+function gStatus(t){ const el=$("status"); el.textContent=t; el.hidden=!t; const m=$("gMsg"); if(m) m.textContent=t; }
+function gSpin(on){ $("gSyncBtn").classList.toggle("spin",on); }
+function gLogin(){ return new Promise((ok,ng)=>{
+  if(!(window.google&&google.accounts&&google.accounts.oauth2)){ ng(new Error("Googleの ログインが まだ 読みこめていません。少し まって もう一度")); return; }
+  if(!tokClient) tokClient=google.accounts.oauth2.initTokenClient({client_id:GCID,scope:GSCOPE,
+    callback:r=>{ const p=gPend; gPend=null; if(!p) return;
+      if(r&&r.access_token){ G.tok=r.access_token; G.exp=Date.now()+(Number(r.expires_in)||3600)*1000; gSave(); p.ok(); }
+      else p.ng(new Error("ログインが できませんでした")); },
+    error_callback:e=>{ const p=gPend; gPend=null; if(p) p.ng(new Error("ログインを やめました")); }});
+  gPend={ok,ng}; tokClient.requestAccessToken({prompt:G.calId?"":"consent"});
+});}
+async function gApi(path,opt={}){
+  const h={Authorization:"Bearer "+G.tok}; if(opt.body) h["Content-Type"]="application/json";
+  const r=await fetch(GAPI+path,{method:opt.method||"GET",headers:h,body:opt.body?JSON.stringify(opt.body):undefined});
+  if(r.status===401){ G.tok=null; gSave(); const e=new Error("auth"); e.code=401; throw e; }
+  if(r.status===204) return null;
+  const j=await r.json().catch(()=>null);
+  if(!r.ok){ const e=new Error((j&&j.error&&j.error.message)||("エラー "+r.status)); e.code=r.status; throw e; }
+  return j;
+}
+async function gList(cid,tmin,tmax){
+  const out=[]; let pt="";
+  for(let i=0;i<20;i++){
+    const q=new URLSearchParams({singleEvents:"true",maxResults:"2500",timeMin:tmin,timeMax:tmax});
+    if(pt) q.set("pageToken",pt);
+    const j=await gApi(`/calendars/${enc(cid)}/events?${q}`); out.push(...(j.items||[]));
+    pt=j.nextPageToken; if(!pt) break;
+  }
+  return out;
+}
+function gConv(e){
+  if(!e||e.status==="cancelled"||!e.start) return null;
+  let from,to,time="";
+  if(e.start.date){ from=e.start.date; to=addDays((e.end&&e.end.date)||addDays(from,1),-1); }
+  else if(e.start.dateTime){
+    from=e.start.dateTime.slice(0,10); time=e.start.dateTime.slice(11,16);
+    const ed=(e.end&&e.end.dateTime)||e.start.dateTime; to=ed.slice(0,10);
+    if(to>from&&ed.slice(11,16)==="00:00") to=addDays(to,-1);
+  } else return null;
+  if(to<from) to=from;
+  const title=(time?time+" ":"")+(e.summary||"（名前なし）"), memo=e.description||"";
+  return from===to?{kind:"item",date:from,title,memo}:{kind:"range",from,to,title,memo};
+}
+// MONO96の予定 → Googleに 書く形
+function gBody(id,v,isRange){
+  const from=isRange?v.from:v.date, to=isRange?v.to:v.date;
+  const name=isRange?(v.title||"（名前なし）"):(v.plan||(v.memo||"").split("\n")[0]||"（名前なし）");
+  return {summary:name,description:v.memo||"",start:{date:from},end:{date:addDays(to,1)},status:"confirmed",
+    extendedProperties:{private:{mono96Id:id}}};
+}
+async function gEnsureCal(){
+  if(G.calId){ try{ await gApi(`/users/me/calendarList/${enc(G.calId)}`); return; }catch(e){ if(e.code!==404&&e.code!==410) throw e; G.calId=null; G.map={}; } }
+  const l=await gApi("/users/me/calendarList?maxResults=250");
+  const f=(l.items||[]).find(c=>c.summary==="MONO96"&&c.accessRole==="owner");
+  if(f) G.calId=f.id;
+  else { const c=await gApi("/calendars",{method:"POST",body:{summary:"MONO96",timeZone:"Asia/Tokyo"}}); G.calId=c.id; }
+  gSave();
+}
+async function gSync(interactive){
+  if(gBusy){ gAgain=true; return; }
+  if(!gTokOk()){
+    if(!interactive){ if(G.calId) gStatus("Google：🔄を おすと つながります"); return; }
+    try{ await gLogin(); }catch(e){ gStatus(e.message); return; }
+  }
+  gBusy=true; gSpin(true); gStatus("Googleと つないでいます…");
+  try{
+    await gEnsureCal();
+    const C=enc(G.calId);
+    const l=await gApi("/users/me/calendarList?maxResults=250");
+    G.cals=(l.items||[]).filter(c=>c.id!==G.calId).map(c=>({id:c.id,name:c.summaryOverride||c.summary||c.id,primary:!!c.primary}));
+    G.sel=G.sel.filter(id=>G.cals.some(c=>c.id===id));
+    // 1) MONO96カレンダーの中を 見る
+    const own=await gList(G.calId,"2000-01-01T00:00:00Z","2100-01-01T00:00:00Z");
+    const idx={}, gev={};
+    for(const e of own){
+      const mid=e.extendedProperties&&e.extendedProperties.private&&e.extendedProperties.private.mono96Id;
+      if(mid&&(items[mid]||ranges[mid]||G.map[mid])){ (idx[mid]=idx[mid]||[]).push(e); continue; }
+      const v=gConv(e); if(v) gev[G.calId+"|"+e.id]=v; // Googleで 書いた予定（見るだけ）
+    }
+    // 2) MONO96の予定を 書く・なおす
+    const local=[...Object.entries(items).map(([id,v])=>[id,gBody(id,v,false)]), ...Object.entries(ranges).map(([id,v])=>[id,gBody(id,v,true)])];
+    for(const [id,body] of local){
+      const h=JSON.stringify(body), m=G.map[id], ex=(idx[id]||[])[0];
+      let eid=(m&&m.eid)||(ex&&ex.id);
+      if(eid){
+        if(!m||m.h!==h||!ex){
+          try{ await gApi(`/calendars/${C}/events/${enc(eid)}`,{method:"PUT",body}); }
+          catch(e){ if(e.code===404||e.code===410){ eid=(await gApi(`/calendars/${C}/events`,{method:"POST",body})).id; } else throw e; }
+        }
+      } else eid=(await gApi(`/calendars/${C}/events`,{method:"POST",body})).id;
+      G.map[id]={eid,h};
+      for(const d of (idx[id]||[])) if(d.id!==eid){ try{ await gApi(`/calendars/${C}/events/${enc(d.id)}`,{method:"DELETE"}); }catch(e){} }
+    }
+    // 3) MONO96で けした予定は、Googleからも けす
+    for(const [id,m] of Object.entries(G.map)){
+      if(items[id]||ranges[id]) continue;
+      try{ await gApi(`/calendars/${C}/events/${enc(m.eid)}`,{method:"DELETE"}); }
+      catch(e){ if(e.code!==404&&e.code!==410) throw e; }
+      delete G.map[id];
+    }
+    gSave();
+    // 4) えらんだ カレンダーの予定を とってきて しまう
+    const now=Date.now(), tmin=new Date(now-400*864e5).toISOString(), tmax=new Date(now+800*864e5).toISOString();
+    for(const cid of G.sel){ for(const e of await gList(cid,tmin,tmax)){ const v=gConv(e); if(v) gev[cid+"|"+e.id]=v; } }
+    G.gev=gev; G.last=now; gSave(); gRebuild(); render(); gPanel();
+    const t=new Date(now); gStatus(`Google ✓ ${t.getHours()}:${pad(t.getMinutes())} に つなぎました`);
+  }catch(e){
+    gStatus(e.code===401?"Google：🔄を おして もう一度 ログインしてください":"Googleと つなげませんでした（"+e.message+"）");
+  }finally{
+    gBusy=false; gSpin(false);
+    if(gAgain){ gAgain=false; gSync(false); }
+  }
+}
+// 書いたり けしたりしたら、少し まってから 送る
+function gQueue(){ if(!G.calId) return; clearTimeout(gTimer); gTimer=setTimeout(()=>gSync(false),1500); }
+["saveItem","removeItem","saveRange","removeRange"].forEach(k=>{ const f=store[k]; store[k]=async(...a)=>{ const r=await f(...a); gQueue(); return r; }; });
+// 設定の中の Google の らん
+function gPanel(){
+  const on=!!G.calId;
+  $("gConnect").textContent=on?"今すぐ つなぐ":"Googleで ログイン";
+  $("gOff").hidden=!on;
+  const box=$("gCals"); box.innerHTML="";
+  if(!on){ return; }
+  if(!G.cals.length){ box.innerHTML='<div class="dempty">つなぐと、ここに カレンダーが 出ます</div>'; return; }
+  G.cals.forEach(c=>{
+    const lb=document.createElement("label"); lb.className="gcal";
+    lb.innerHTML=`<input type="checkbox"${G.sel.includes(c.id)?" checked":""}><span>${esc(c.name)}</span>`;
+    lb.querySelector("input").addEventListener("change",ev=>{
+      G.sel=G.sel.filter(x=>x!==c.id); if(ev.target.checked) G.sel.push(c.id);
+      if(!ev.target.checked){ for(const k of Object.keys(G.gev)) if(k.startsWith(c.id+"|")) delete G.gev[k]; gRebuild(); render(); }
+      gSave(); gSync(true);
+    });
+    box.appendChild(lb);
+  });
+}
+$("gConnect").addEventListener("click",()=>gSync(true));
+$("gSyncBtn").addEventListener("click",()=>gSync(true));
+$("gOff").addEventListener("click",()=>{
+  try{ if(G.tok&&window.google&&google.accounts&&google.accounts.oauth2) google.accounts.oauth2.revoke(G.tok,()=>{}); }catch(e){}
+  G={map:{},gev:{},sel:[],cals:[]}; gSave(); gRebuild(); render(); gPanel(); gStatus("");
+  $("setMsg").textContent="Googleとの つながりを はずしました（Googleの MONO96カレンダーは のこっています）";
+});
+$("openSet").addEventListener("click",gPanel);
+// ひらいた時：合いかぎが まだ 生きていれば 自動で つなぐ
+if(G.calId){ if(gTokOk()) gSync(false); else gStatus("Google：🔄を おすと つながります"); }
+
 
 // アカウントに保存（ほかの日に開いても残る）
 (async()=>{
