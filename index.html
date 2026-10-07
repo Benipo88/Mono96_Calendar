@@ -254,7 +254,6 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
   <div class="sh-top"><div class="sh-date" id="setTitle" style="font-size:20px">設定</div><span style="flex:1"></span><button type="button" class="ib" id="setClose" aria-label="閉じる"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="sttl">予定の登録・出力</div>
   <div class="setrow"><button type="button" class="ib" id="doExport" aria-label="エクスポート"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button><label class="ib" for="impFile" aria-label="インポート"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></svg><input type="file" id="impFile" accept=".json,application/json,text/plain,application/octet-stream" class="fpick"></label></div>
-  <label class="gcal gsync"><span>Google Calendarと同期</span><input type="checkbox" role="switch" id="gOn"></label>
   <div class="sttl">テーマ</div>
   <div class="setrow"><div class="themes" role="group" aria-label="テーマ">
       <button type="button" class="sw w" id="thW" aria-label="白のテーマ"></button>
@@ -262,6 +261,7 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
     <label class="sw ph" id="phPick" for="phFile" aria-label="写真をえらぶ"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg><input type="file" id="phFile" accept="image/*" class="fpick"></label>
     <button type="button" class="ib sm2" id="phDel" aria-label="写真をけす" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div></div>
+  <label class="gcal gsync"><span>Google Calendarと同期</span><input type="checkbox" role="switch" id="gOn"></label>
   <div class="msg" id="setMsg" style="white-space:pre-line"></div>
 </div>
 <div class="sheet" id="findSheet" role="dialog" aria-modal="true" aria-labelledby="findTitle">
@@ -860,7 +860,7 @@ async function gSync(interactive){
     if(!interactive){ if(G.calId) gStatus("🔄を押すと、Google Calendarと同期します"); return; }
     try{ await gLogin(); }catch(e){ gStatus(e.message); return false; }
   }
-  gBusy=true; gSpin(true); gStatus("Googleと つないでいます…"); let ok=false;
+  gBusy=true; gSpin(true); gStatus("Google Calendarと同期しています…"); let ok=false;
   try{
     await gEnsureCal();
     const C=enc(G.calId);
