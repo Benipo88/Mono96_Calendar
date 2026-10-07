@@ -219,6 +219,7 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
 .drow mark{background:none;color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px}
 .gcal{display:flex;align-items:center;gap:10px;font-size:15px;letter-spacing:0;color:var(--ink);margin:8px 0 0;cursor:pointer}
 .gsync{margin-top:16px}
+.ver{text-align:right;font-family:var(--display);font-stretch:75%;font-weight:800;font-size:11px;letter-spacing:.06em;color:var(--sub);margin-top:4px}
 .gcal input{width:20px;height:20px;accent-color:var(--ink);margin:0;flex:none}
 .gbtn{font:inherit;font-size:14px;font-weight:700;color:var(--ink);padding:8px 14px;border-radius:6px;cursor:pointer;background:linear-gradient(145deg,var(--btn1),var(--btn2));border:1px solid var(--bd);box-shadow:3px 3px 6px var(--sh),-2px -2px 5px var(--hi),inset 0 1px 0 var(--hi)}
 .gbtn:active{box-shadow:inset 2px 2px 5px var(--sh),inset -2px -2px 4px var(--hi)}
@@ -263,6 +264,7 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
     </div></div>
   <label class="gcal gsync"><span>Google Calendarと同期</span><input type="checkbox" role="switch" id="gOn"></label>
   <div class="msg" id="setMsg" style="white-space:pre-line"></div>
+  <div class="ver">v1.0.0</div>
 </div>
 <div class="sheet" id="findSheet" role="dialog" aria-modal="true" aria-labelledby="findTitle">
   <div class="sh-top"><div class="sh-date" id="findTitle" style="font-size:20px">検索</div><span style="flex:1"></span><button type="button" class="ib" id="findClose" aria-label="閉じる"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
