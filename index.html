@@ -30,7 +30,7 @@ header.top{display:flex;align-items:flex-start;justify-content:space-between;pad
 .ynav{display:flex;align-items:center;gap:6px;min-width:0}
 .ynav .jump{align-items:center}
 .ynav .jump .caret{padding-bottom:0}
-.ynav .h2{font-size:clamp(28px,8.6vw,46px);line-height:1}
+.ynav .h2{font-size:clamp(40px,13vw,56px);line-height:1}
 header.top{align-items:center;gap:16px}
 .qnav{gap:6px}
 header>*{display:block;line-height:.86;margin:0}
@@ -218,9 +218,17 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
 .drow .mk .hb{font-size:9px;font-weight:700;border:1px solid var(--ink);border-radius:4px;padding:0 3px;line-height:14px}
 .drow mark{background:none;color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px}
 .gcal{display:flex;align-items:center;gap:10px;font-size:15px;letter-spacing:0;color:var(--ink);margin:8px 0 0;cursor:pointer}
+.gsync{margin-top:16px}
 .gcal input{width:20px;height:20px;accent-color:var(--ink);margin:0;flex:none}
 .gbtn{font:inherit;font-size:14px;font-weight:700;color:var(--ink);padding:8px 14px;border-radius:6px;cursor:pointer;background:linear-gradient(145deg,var(--btn1),var(--btn2));border:1px solid var(--bd);box-shadow:3px 3px 6px var(--sh),-2px -2px 5px var(--hi),inset 0 1px 0 var(--hi)}
 .gbtn:active{box-shadow:inset 2px 2px 5px var(--sh),inset -2px -2px 4px var(--hi)}
+.gsync{justify-content:space-between;max-width:320px}
+.gsync input{-webkit-appearance:none;appearance:none;width:48px;height:28px;border-radius:999px;position:relative;flex:none;cursor:pointer;background:var(--well);border:1px solid var(--wellbd);box-shadow:inset 2px 2px 5px var(--sh2),inset -2px -2px 4px var(--hi);transition:background .2s,border-color .2s}
+.gsync input::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:linear-gradient(145deg,var(--btn1),var(--btn2));border:1px solid var(--bd);box-shadow:2px 2px 4px var(--sh);transition:transform .2s}
+.gsync input:checked{background:var(--ink);border-color:var(--ink)}
+.gsync input:checked::after{transform:translateX(20px)}
+.gsync input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.gsync input,.gsync input::after{transition:none}}
 .ib.spin svg{animation:gsp 1s linear infinite}
 @keyframes gsp{to{transform:rotate(360deg)}}
 </style>
@@ -228,10 +236,9 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
 <div id="bgPhoto" hidden></div>
 <div class="wrap">
   <header class="top">
-    <div class="ynav"><button type="button" id="qPrev" class="ib" aria-label="前の3か月"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="ynav">
     <label class="jump" for="jumpTo"><span class="h2" id="yr">2026</span><span class="caret">▾</span>
-      <input type="month" id="jumpTo" aria-label="はじめの月をえらぶ"></label>
-    <button type="button" id="qNext" class="ib" aria-label="次の3か月"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
+      <input type="month" id="jumpTo" aria-label="はじめの月をえらぶ"></label></div>
     <div class="qnav">
       <button type="button" id="gSyncBtn" class="ib" aria-label="Googleと つなぐ"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg></button>
       <button type="button" id="openFind" class="ib" aria-label="検索"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></button>
@@ -247,10 +254,7 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
   <div class="sh-top"><div class="sh-date" id="setTitle" style="font-size:20px">設定</div><span style="flex:1"></span><button type="button" class="ib" id="setClose" aria-label="閉じる"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="sttl">予定の登録・出力</div>
   <div class="setrow"><button type="button" class="ib" id="doExport" aria-label="エクスポート"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button><label class="ib" for="impFile" aria-label="インポート"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></svg><input type="file" id="impFile" accept=".json,application/json,text/plain,application/octet-stream" class="fpick"></label></div>
-  <div class="sttl">Google カレンダー</div>
-  <div class="setrow"><button type="button" class="gbtn" id="gConnect">Googleで ログイン</button><button type="button" class="gbtn" id="gOff" hidden>はずす</button></div>
-  <div class="msg" id="gMsg" style="white-space:pre-line"></div>
-  <div id="gCals"></div>
+  <label class="gcal gsync"><span>Google Calendarと同期</span><input type="checkbox" role="switch" id="gOn"></label>
   <div class="sttl">テーマ</div>
   <div class="setrow"><div class="themes" role="group" aria-label="テーマ">
       <button type="button" class="sw w" id="thW" aria-label="白のテーマ"></button>
@@ -258,7 +262,7 @@ input[type=text],textarea,input[type=date]{background:var(--well);border:1px sol
     <label class="sw ph" id="phPick" for="phFile" aria-label="写真をえらぶ"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg><input type="file" id="phFile" accept="image/*" class="fpick"></label>
     <button type="button" class="ib sm2" id="phDel" aria-label="写真をけす" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div></div>
-  <div class="msg" id="setMsg"></div>
+  <div class="msg" id="setMsg" style="white-space:pre-line"></div>
 </div>
 <div class="sheet" id="findSheet" role="dialog" aria-modal="true" aria-labelledby="findTitle">
   <div class="sh-top"><div class="sh-date" id="findTitle" style="font-size:20px">検索</div><span style="flex:1"></span><button type="button" class="ib" id="findClose" aria-label="閉じる"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -432,7 +436,8 @@ let ranges={};   // id -> {title,memo,from,to}  期間の予定
 let store=null;
 const GK="mono96-google";
 let G=(()=>{try{return JSON.parse(localStorage.getItem(GK)||"{}")||{}}catch(e){return {}}})();
-G.map=G.map||{}; G.gev=G.gev||{}; G.sel=G.sel||[]; G.cals=G.cals||[];
+G.map=G.map||{}; G.gev=G.gev||{}; G.sel=[]; G.cals=[];
+if(G.calId) for(const k of Object.keys(G.gev)) if(!k.startsWith(G.calId+"|")) delete G.gev[k];
 const gSave=()=>{try{localStorage.setItem(GK,JSON.stringify(G))}catch(e){}};
 let gItems={}, gRanges={}; // Googleで書いた予定（見るだけ）。idは "g:" ではじまる
 function gRebuild(){ gItems={}; gRanges={};
@@ -599,8 +604,6 @@ $("mRange").addEventListener("click",()=>{setMode("range");$("msg").textContent=
 
 // 3か月ずつめくる
 function shiftQ(n){ let m=qM+3*n, y=qY; while(m<1){m+=12;y--;} while(m>12){m-=12;y++;} qY=y; qM=m; render(); }
-$("qPrev").addEventListener("click",()=>shiftQ(-1));
-$("qNext").addEventListener("click",()=>shiftQ(1));
 $("jumpTo").addEventListener("change",e=>{ const v=e.target.value; if(!/^\d{4}-\d\d$/.test(v)) return; qY=Number(v.slice(0,4)); qM=Number(v.slice(5,7)); render(); });
 // 日づけをめくる（いまのページを保存してから）
 function shiftDay(n){
@@ -796,7 +799,7 @@ function gStatus(t,sec){ clearTimeout(gHide); const el=$("status"); el.textConte
   if(t&&sec) gHide=setTimeout(()=>{ el.hidden=true; el.textContent=""; if(m) m.textContent=""; },sec*1000); }
 function gSpin(on){ $("gSyncBtn").classList.toggle("spin",on); }
 function gLogin(){ return new Promise((ok,ng)=>{
-  if(!(window.google&&google.accounts&&google.accounts.oauth2)){ ng(new Error("Googleの ログインが 読み込めませんでした。\n少し まってから、もう一度 🔄を おしてください")); return; }
+  if(!(window.google&&google.accounts&&google.accounts.oauth2)){ ng(new Error("Google Calendarと同期できませんでした。\n少し待ってから、もう一度 🔄を 押してください")); return; }
   if(!tokClient) tokClient=google.accounts.oauth2.initTokenClient({client_id:GCID,scope:GSCOPE,
     callback:r=>{ const p=gPend; gPend=null; if(!p) return;
       if(r&&r.access_token){ G.tok=r.access_token; G.exp=Date.now()+(Number(r.expires_in)||3600)*1000; gSave(); p.ok(); }
@@ -855,15 +858,12 @@ async function gSync(interactive){
   if(gBusy){ gAgain=true; return; }
   if(!gTokOk()){
     if(!interactive){ if(G.calId) gStatus("Google：🔄を おすと つながります"); return; }
-    try{ await gLogin(); }catch(e){ gStatus(e.message); return; }
+    try{ await gLogin(); }catch(e){ gStatus(e.message); return false; }
   }
-  gBusy=true; gSpin(true); gStatus("Googleと つないでいます…");
+  gBusy=true; gSpin(true); gStatus("Googleと つないでいます…"); let ok=false;
   try{
     await gEnsureCal();
     const C=enc(G.calId);
-    const l=await gApi("/users/me/calendarList?maxResults=250");
-    G.cals=(l.items||[]).filter(c=>c.id!==G.calId).map(c=>({id:c.id,name:c.summaryOverride||c.summary||c.id,primary:!!c.primary}));
-    G.sel=G.sel.filter(id=>G.cals.some(c=>c.id===id));
     // 1) MONO96カレンダーの中を 見る
     const own=await gList(G.calId,"2000-01-01T00:00:00Z","2100-01-01T00:00:00Z");
     const idx={}, gev={};
@@ -894,50 +894,45 @@ async function gSync(interactive){
       delete G.map[id];
     }
     gSave();
-    // 4) えらんだ カレンダーの予定を とってきて しまう
-    const now=Date.now(), tmin=new Date(now-400*864e5).toISOString(), tmax=new Date(now+800*864e5).toISOString();
-    for(const cid of G.sel){ for(const e of await gList(cid,tmin,tmax)){ const v=gConv(e); if(v) gev[cid+"|"+e.id]=v; } }
+    const now=Date.now();
     G.gev=gev; G.last=now; gSave(); gRebuild(); render(); gPanel();
-    gStatus("Google Calendarと同期しました",3);
+    gStatus("Google Calendarと同期しました",3); ok=true;
   }catch(e){
     gStatus(e.code===401?"Google：🔄を おして\nもう一度 ログインしてください":"Googleと 接続できませんでした\n（"+e.message+"）");
   }finally{
     gBusy=false; gSpin(false);
     if(gAgain){ gAgain=false; gSync(false); }
   }
+  return ok;
 }
 // 書いたり けしたりしたら、少し まってから 送る
 function gQueue(){ if(!G.calId) return; clearTimeout(gTimer); gTimer=setTimeout(()=>gSync(false),1500); }
 ["saveItem","removeItem","saveRange","removeRange"].forEach(k=>{ const f=store[k]; store[k]=async(...a)=>{ const r=await f(...a); gQueue(); return r; }; });
 // 設定の中の Google の らん
 function gPanel(){
-  const on=!!G.calId;
-  $("gConnect").textContent=on?"今すぐ つなぐ":"Googleで ログイン";
-  $("gOff").hidden=!on;
-  const box=$("gCals"); box.innerHTML="";
-  if(!on){ return; }
-  if(!G.cals.length){ box.innerHTML='<div class="dempty">つなぐと、ここに カレンダーが 出ます</div>'; return; }
-  G.cals.forEach(c=>{
-    const lb=document.createElement("label"); lb.className="gcal";
-    lb.innerHTML=`<input type="checkbox"${G.sel.includes(c.id)?" checked":""}><span>${esc(c.name)}</span>`;
-    lb.querySelector("input").addEventListener("change",ev=>{
-      G.sel=G.sel.filter(x=>x!==c.id); if(ev.target.checked) G.sel.push(c.id);
-      if(!ev.target.checked){ for(const k of Object.keys(G.gev)) if(k.startsWith(c.id+"|")) delete G.gev[k]; gRebuild(); render(); }
-      gSave(); gSync(true);
-    });
-    box.appendChild(lb);
-  });
+  const on=!G.off; // はじめは オン。前田さんが オフに した時だけ オフ
+  $("gOn").checked=on;
+  $("gSyncBtn").hidden=!on; // 同期しない時は 🔄 を かくす
 }
-$("gConnect").addEventListener("click",()=>gSync(true));
-$("gSyncBtn").addEventListener("click",()=>gSync(true));
-$("gOff").addEventListener("click",()=>{
-  try{ if(G.tok&&window.google&&google.accounts&&google.accounts.oauth2) google.accounts.oauth2.revoke(G.tok,()=>{}); }catch(e){}
-  G={map:{},gev:{},sel:[],cals:[]}; gSave(); gRebuild(); render(); gPanel(); gStatus("");
-  $("setMsg").textContent="Googleとの つながりを はずしました（Googleの MONO96カレンダーは のこっています）";
+$("gOn").addEventListener("change",async e=>{
+  if(e.target.checked){ $("setMsg").textContent=""; G.off=false; gSave(); gPanel();
+    const ok=await gSync(true);
+    if(ok===false){ // うまく いかなかったら スイッチを オフに もどす
+      G.off=true; gSave(); gStatus("");
+      $("setMsg").textContent="Google Calendarと同期できませんでした。\n少し待ってから、もう一度 同期をONにしてください"; }
+    gPanel(); }
+  else gStop();
 });
+$("gSyncBtn").addEventListener("click",()=>gSync(true));
+function gStop(){
+  try{ if(G.tok&&window.google&&google.accounts&&google.accounts.oauth2) google.accounts.oauth2.revoke(G.tok,()=>{}); }catch(e){}
+  G={map:{},gev:{},sel:[],cals:[],off:true}; gSave(); gRebuild(); render(); gPanel(); gStatus("");
+  $("setMsg").textContent="同期を やめました（Googleの MONO96カレンダーは のこっています）";
+}
 $("openSet").addEventListener("click",gPanel);
+gPanel();
 // ひらいた時：合いかぎが まだ 生きていれば 自動で つなぐ
-if(G.calId){ if(gTokOk()) gSync(false); else gStatus("Google：🔄を おすと つながります"); }
+if(!G.off){ if(G.calId&&gTokOk()) gSync(false); else gStatus("Google：🔄を おすと つながります"); }
 
 
 // アカウントに保存（ほかの日に開いても残る）
