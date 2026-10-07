@@ -531,7 +531,7 @@ function showPage(){
   showDates(); $("msg").textContent=""; snap0=formState();
   const ro=!isNew&&isG(pages[pi].id);
   ["inPlan","inMemo","inFrom","inTo","mDay","mRange"].forEach(i=>{$(i).disabled=ro;});
-  if(ro){ $("clear").hidden=true; $("msg").textContent="Googleで書いた予定です（ここでは なおせません）"; }
+  if(ro){ $("clear").hidden=true; $("msg").textContent="Googleで書いた予定のため、修正できません"; }
 }
 function showDates(){ const f=v=>v?`${Number(v.slice(5,7))}/${Number(v.slice(8,10))}`:"—";
   $("tFrom").textContent=f($("inFrom").value); $("tTo").textContent=f($("inTo").value); }
@@ -546,20 +546,20 @@ async function commit(){
     if(mode==="range"){
       const from=$("inFrom").value, to=$("inTo").value;
       if(isNew&&!plan&&!memo) return true;
-      if(!from||!to){$("msg").textContent="開始と終了の日を選んでください。";return false;}
-      if(from>to){$("msg").textContent="終了の日は、開始の日より後にしてください。";return false;}
-      if(!plan){$("msg").textContent="予定の名前を入れてください（例：旅行）。";return false;}
+      if(!from||!to){$("msg").textContent="開始日と終了日を入力してください";return false;}
+      if(from>to){$("msg").textContent="終了日は、開始日より後にしてください";return false;}
+      if(!plan){$("msg").textContent="予定を入力してください";return false;}
       if(p&&p.kind==="item"){ await store.removeItem(p.id); delete items[p.id]; }
       const id=(p&&p.kind==="range")?p.id:newId("r-");
       await store.saveRange(id,{kind:"range",title:plan,memo,from,to}); ranges[id]={title:plan,memo,from,to};
     } else {
-      if(!plan&&!memo){ if(p&&p.kind==="item"){ await store.removeItem(p.id); delete items[p.id]; } else if(p){ $("msg").textContent="予定かメモを入れてください。"; return false; } render(); return true; }
+      if(!plan&&!memo){ if(p&&p.kind==="item"){ await store.removeItem(p.id); delete items[p.id]; } else if(p){ $("msg").textContent="メモを入力してください"; return false; } render(); return true; }
       if(p&&p.kind==="range"){ await store.removeRange(p.id); delete ranges[p.id]; }
       const id=(p&&p.kind==="item")?p.id:newId("i-");
       await store.saveItem(id,{kind:"item",date:cur,plan,memo}); items[id]={date:cur,plan,memo};
     }
     render(); return true;
-  }catch(err){ $("msg").textContent="保存できませんでした。もう一度お試しください。"; return false; }
+  }catch(err){ $("msg").textContent="保存できませんでした。もう一度お試しください"; return false; }
 }
 let view="list";
 function showList(){
@@ -624,7 +624,7 @@ $("clear").addEventListener("click",()=>guarded(async()=>{
     if(p.kind==="range"){ await store.removeRange(p.id); delete ranges[p.id]; }
     else { await store.removeItem(p.id); delete items[p.id]; }
     render(); buildPages(); pi=0; showPage(); showList(); $("msg").textContent="削除しました";
-  }catch(err){ $("msg").textContent="削除できませんでした。もう一度お試しください。"; }
+  }catch(err){ $("msg").textContent="削除できませんでした。もう一度お試しください"; }
 }));
 
 // このスマホに保存（アカウントにつながらないとき）
@@ -652,15 +652,15 @@ function shrinkPhoto(file){ return new Promise((ok,ng)=>{
     const c=document.createElement("canvas"); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
     c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(src); ok(c.toDataURL("image/jpeg",.72)); };
   img.onerror=()=>{URL.revokeObjectURL(src); ng(new Error("img"));}; img.src=src; }); }
-$("phFile").addEventListener("click",()=>{ $("setMsg").textContent="えらぶ画面が出ないときは、ブラウザで開いてください"; });
+$("phFile").addEventListener("click",()=>{ $("setMsg").textContent="画像が選択できない場合は、アプリをブラウザで開いてください"; });
 $("phFile").addEventListener("change",async e=>{
   const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
   try{ const url=await shrinkPhoto(f); showPhoto(url);
-    try{ localStorage.setItem(PH,url); $("setMsg").textContent="写真をはいけいにしました"; }
-    catch(err){ $("setMsg").textContent="写真が大きくて、のこせませんでした（今だけ出ています）"; }
-  }catch(err){ $("setMsg").textContent="この写真は読みこめませんでした"; }
+    try{ localStorage.setItem(PH,url); $("setMsg").textContent="画像を背景に設定しました"; }
+    catch(err){ $("setMsg").textContent="画像のサイズが大きく、設定できませんでした"; }
+  }catch(err){ $("setMsg").textContent="画像が読み込めませんでした"; }
 });
-$("phDel").addEventListener("click",()=>{ try{localStorage.removeItem(PH)}catch(e){} showPhoto(null); $("setMsg").textContent="写真をけしました"; });
+$("phDel").addEventListener("click",()=>{ try{localStorage.removeItem(PH)}catch(e){} showPhoto(null); $("setMsg").textContent="写真を削除しました"; });
 function openSettings(){ setOpen=true; $("setMsg").textContent=""; $("veil").classList.add("on"); $("setSheet").classList.add("on"); }
 function closeSettings(){ setOpen=false; $("setSheet").classList.remove("on"); $("veil").classList.remove("on"); }
 $("openSet").addEventListener("click",openSettings);
@@ -674,18 +674,18 @@ $("doExport").addEventListener("click",async()=>{
     if(!dl){ // Claudeの外（GitHubのページなど）：スマホの「ダウンロード」フォルダに保存
       const blob=new Blob([data],{type:"application/json"}), u=URL.createObjectURL(blob), a=document.createElement("a");
       a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),3000);
-      $("setMsg").textContent=`「ダウンロード」に保存しました（${cnt}件）`; return; }
+      $("setMsg").textContent=`端末のフォルダ「ダウンロード」に保存しました（${cnt}件）`; return; }
     await dl.save({filename:name,data}); $("setMsg").textContent="保存しました（"+cnt+"件）";
-  }catch(e){ $("setMsg").textContent=(e&&e.code==="declined")?"保存をやめました。":"保存できませんでした。もう一度お試しください。"; }
+  }catch(e){ $("setMsg").textContent=(e&&e.code==="declined")?"保存を中断しました":"保存できませんでした。もう一度お試しください"; }
 });
 $("impFile").addEventListener("change",async e=>{
   const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f) return;
   let txt=""; try{ txt=f.text?await f.text():await new Promise((ok,ng)=>{const r=new FileReader();r.onload=()=>ok(String(r.result||""));r.onerror=ng;r.readAsText(f);}); }
-  catch(err){ $("setMsg").textContent="ファイルを開けませんでした。もう一度おためしください。"; return; }
+  catch(err){ $("setMsg").textContent="ファイルを開けませんでした。もう一度お試しください"; return; }
   txt=txt.replace(/^\uFEFF/,"").trim();
-  let obj; try{ obj=JSON.parse(txt); }catch(err){ $("setMsg").textContent=`このファイルは読みこめません（${f.name||"名前なし"}）。エクスポートしたファイルをえらんでください。`; return; }
+  let obj; try{ obj=JSON.parse(txt); }catch(err){ $("setMsg").textContent=`このファイルは読み込めませんでした（${f.name||"名前なし"}）。エクスポートしたファイルを選択してください`; return; }
   if(obj&&typeof obj==="object"&&!obj.items&&!obj.ranges&&obj.data&&typeof obj.data==="object") obj=obj.data;
-  if(!obj||typeof obj!=="object"||(!obj.items&&!obj.ranges)){ $("setMsg").textContent=`このファイルには予定が入っていません（${f.name||"名前なし"}）。`; return; }
+  if(!obj||typeof obj!=="object"||(!obj.items&&!obj.ranges)){ $("setMsg").textContent=`このファイルには予定が入っていません（${f.name||"名前なし"}）`; return; }
   const sameI=v=>Object.values(items).some(x=>x.date===v.date&&x.plan===v.plan&&x.memo===v.memo);
   const sameR=v=>Object.values(ranges).some(x=>x.from===v.from&&x.to===v.to&&x.title===v.title&&x.memo===v.memo);
   const okDate=d=>typeof d==="string"&&/^\d{4}-\d\d-\d\d$/.test(d);
@@ -699,8 +699,8 @@ $("impFile").addEventListener("change",async e=>{
       const o={title:String(v.title||""),memo:String(v.memo||""),from:v.from,to:v.to}; if(!o.title) continue;
       if(sameR(o)){skip++;continue;} const nid=ranges[id]?newId("r-"):id;
       await store.saveRange(nid,{kind:"range",...o}); ranges[nid]=o; add++; }
-    render(); $("setMsg").textContent=`${add}件たしました`+(skip?`（同じ予定 ${skip}件はとばしました）`:"");
-  }catch(err){ render(); $("setMsg").textContent=`とちゅうで止まりました（${add}件たしました）。もう一度お試しください。`; }
+    render(); $("setMsg").textContent=add===0?(skip?"既に登録済みのため、新しい予定はありませんでした":"新しい予定はありませんでした"):`${add}件登録しました`+(skip?`（重複している予定${skip}件はスキップしました）`:"");
+  }catch(err){ render(); $("setMsg").textContent=`予定の登録を中断しました（${add}件登録しました）。もう一度お試しください`; }
 });
 // さがす：予定の名前・メモ・祝日・誕生日
 let findOpen=false;
@@ -857,7 +857,7 @@ async function gEnsureCal(){
 async function gSync(interactive){
   if(gBusy){ gAgain=true; return; }
   if(!gTokOk()){
-    if(!interactive){ if(G.calId) gStatus("Google：🔄を おすと つながります"); return; }
+    if(!interactive){ if(G.calId) gStatus("🔄を押すと、Google Calendarと同期します"); return; }
     try{ await gLogin(); }catch(e){ gStatus(e.message); return false; }
   }
   gBusy=true; gSpin(true); gStatus("Googleと つないでいます…"); let ok=false;
@@ -898,7 +898,7 @@ async function gSync(interactive){
     G.gev=gev; G.last=now; gSave(); gRebuild(); render(); gPanel();
     gStatus("Google Calendarと同期しました",3); ok=true;
   }catch(e){
-    gStatus(e.code===401?"Google：🔄を おして\nもう一度 ログインしてください":"Googleと 接続できませんでした\n（"+e.message+"）");
+    gStatus(e.code===401?"🔄を押して、Google Calendarと同期してください":"Google Calendarに接続できませんでした\n（"+e.message+"）");
   }finally{
     gBusy=false; gSpin(false);
     if(gAgain){ gAgain=false; gSync(false); }
@@ -927,12 +927,12 @@ $("gSyncBtn").addEventListener("click",()=>gSync(true));
 function gStop(){
   try{ if(G.tok&&window.google&&google.accounts&&google.accounts.oauth2) google.accounts.oauth2.revoke(G.tok,()=>{}); }catch(e){}
   G={map:{},gev:{},sel:[],cals:[],off:true}; gSave(); gRebuild(); render(); gPanel(); gStatus("");
-  $("setMsg").textContent="同期を やめました（Googleの MONO96カレンダーは のこっています）";
+  $("setMsg").textContent="同期を中断しました";
 }
 $("openSet").addEventListener("click",gPanel);
 gPanel();
 // ひらいた時：合いかぎが まだ 生きていれば 自動で つなぐ
-if(!G.off){ if(G.calId&&gTokOk()) gSync(false); else gStatus("Google：🔄を おすと つながります"); }
+if(!G.off){ if(G.calId&&gTokOk()) gSync(false); else gStatus("🔄を押すと、Google Calendarと同期します"); }
 
 
 // アカウントに保存（ほかの日に開いても残る）
