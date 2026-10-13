@@ -81,6 +81,8 @@ section.month+section.month .mhead{top:20px}
 .cell.today.hol .n{background:var(--paper);color:var(--ink)}
 .cell.today .has{background:var(--paper)}
 .cell.today .cake{color:var(--paper)}
+.cell.today.brk .has{background:var(--ink)}
+.cell.today.brk .cake{color:var(--heart)} /* 連続の日のグレーの上では、黒にする */
 .cell.today.brk .bar{background:var(--rfill)}
 
 .bar{position:absolute;left:0;right:0;top:29px;height:17px;background:var(--rfill);z-index:0;box-sizing:border-box;border:0}
@@ -284,7 +286,7 @@ label.ck:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2p
     </div></div>
   <label class="gcal gsync"><span>Google Calendarと同期</span><input type="checkbox" role="switch" id="gOn"></label>
   <div class="msg" id="setMsg" style="white-space:pre-line"></div>
-  <div class="ver">v1.1.4</div>
+  <div class="ver">v1.1.5</div>
 </div>
 <div class="sheet" id="findSheet" role="dialog" aria-modal="true" aria-labelledby="findTitle">
   <div class="sh-top"><div class="sh-date" id="findTitle" style="font-size:20px">検索</div><span style="flex:1"></span><button type="button" class="ib" id="findClose" aria-label="閉じる"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
