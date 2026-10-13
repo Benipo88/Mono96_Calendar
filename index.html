@@ -188,7 +188,7 @@ label.sw.ph{margin:0;overflow:hidden}
 .ib.sm{width:30px;height:30px;font-size:16px;border-color:var(--line)}
 .kind{display:flex;align-items:center;gap:8px;margin:8px 0}
 .seg{display:inline-flex;flex:none;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
-.seg button{font:inherit;font-size:13px;padding:4px 12px;border:0;background:var(--paper);color:var(--ink);cursor:pointer}
+.seg button{font:inherit;font-size:13px;padding:4px 10px;border:0;background:var(--paper);color:var(--ink);cursor:pointer}
 .seg button.on{background:var(--ink);color:var(--paper)}
 .seg button:disabled{cursor:default}
 .span{display:flex;align-items:center;gap:4px;min-width:0;flex:1}
@@ -283,7 +283,7 @@ label.ck:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2p
     </div></div>
   <label class="gcal gsync"><span>Google Calendarと同期</span><input type="checkbox" role="switch" id="gOn"></label>
   <div class="msg" id="setMsg" style="white-space:pre-line"></div>
-  <div class="ver">v1.0.2</div>
+  <div class="ver">v1.1.0</div>
 </div>
 <div class="sheet" id="findSheet" role="dialog" aria-modal="true" aria-labelledby="findTitle">
   <div class="sh-top"><div class="sh-date" id="findTitle" style="font-size:20px">検索</div><span style="flex:1"></span><button type="button" class="ib" id="findClose" aria-label="閉じる"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -320,6 +320,7 @@ label.ck:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2p
     <div class="seg" role="group" aria-label="日数" id="segBox">
       <button type="button" id="mDay" class="on">1日</button>
       <button type="button" id="mRange">期間</button>
+      <button type="button" id="mYear">毎年</button>
     </div>
     <div class="span off" id="spanBox">
       <label class="dbox"><span id="tFrom"></span><input type="date" id="inFrom" aria-label="開始"></label>
@@ -471,7 +472,20 @@ gRebuild();
 const isG=id=>String(id).startsWith("g:");
 const IT=id=>items[id]||gItems[id], RG=id=>ranges[id]||gRanges[id];
 const rangesOn=s=>Object.entries(ranges).concat(Object.entries(gRanges)).filter(([id,r])=>r.from<=s&&s<=r.to).sort((a,b)=>a[1].from<b[1].from?-1:1);
-const itemsOn=s=>Object.entries(items).concat(Object.entries(gItems)).filter(([id,v])=>v.date===s).sort((a,b)=>a[0]<b[0]?-1:1);
+// 毎年の予定（たんじょう日など）：その日より後の、同じ月日にも出す。2/29は、うるう年でない年は2/28に出す
+const isLeap=y=>(y%4===0&&y%100!==0)||y%400===0;
+function occursOn(v,s){
+  if(v.date===s) return true;
+  if(!v.yearly||s<v.date) return false;
+  const a=v.date.slice(5), b=s.slice(5);
+  return a===b||(a==="02-29"&&b==="02-28"&&!isLeap(Number(s.slice(0,4))));
+}
+function nextOcc(v){ // 今日から見て、つぎに来る日
+  if(!v.yearly||v.date>=TODAY) return v.date;
+  const a=v.date.slice(5);
+  for(let y=Number(TODAY.slice(0,4));;y++){ const d=(a==="02-29"&&!isLeap(y))?`${y}-02-28`:`${y}-${a}`; if(d>=TODAY) return d; }
+}
+const itemsOn=s=>Object.entries(items).concat(Object.entries(gItems)).filter(([id,v])=>occursOn(v,s)).sort((a,b)=>a[0]<b[0]?-1:1);
 function esc(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
@@ -534,7 +548,7 @@ function buildPages(){
   pages=[...itemsOn(cur).map(([id])=>({kind:"item",id})), ...rangesOn(cur).map(([id])=>({kind:"range",id}))];
 }
 function setMode(mm){
-  mode=mm; $("mDay").classList.toggle("on",mm==="day"); $("mRange").classList.toggle("on",mm==="range");
+  mode=mm; $("mDay").classList.toggle("on",mm==="day"); $("mRange").classList.toggle("on",mm==="range"); $("mYear").classList.toggle("on",mm==="year");
   $("spanBox").classList.toggle("off",mm!=="range");
 }
 const formState=()=>JSON.stringify([mode,$("inFrom").value,$("inTo").value,$("inPlan").value.trim(),$("inMemo").value.trim()]);
@@ -548,12 +562,12 @@ function showPage(){
     setMode(mode); $("inFrom").value=cur; $("inTo").value=cur; $("inPlan").value=""; $("inMemo").value="";
   } else {
     const p=pages[pi]; $("inFrom").value=cur; $("inTo").value=cur;
-    if(p.kind==="item"){ const v=IT(p.id); setMode("day"); $("inPlan").value=v.plan||""; $("inMemo").value=v.memo||""; }
+    if(p.kind==="item"){ const v=IT(p.id); setMode(v.yearly?"year":"day"); $("inPlan").value=v.plan||""; $("inMemo").value=v.memo||""; }
     else { const r=RG(p.id); setMode("range"); $("inFrom").value=r.from; $("inTo").value=r.to; $("inPlan").value=r.title||""; $("inMemo").value=r.memo||""; }
   }
-  showDates(); $("msg").textContent=""; snap0=formState();
+  showDates(); $("msg").textContent=""; snap0=formState(); autoYear=false;
   const ro=!isNew&&isG(pages[pi].id);
-  ["inPlan","inMemo","inFrom","inTo","mDay","mRange"].forEach(i=>{$(i).disabled=ro;});
+  ["inPlan","inMemo","inFrom","inTo","mDay","mRange","mYear"].forEach(i=>{$(i).disabled=ro;});
   if(ro){ $("clear").hidden=true; $("msg").textContent="Googleで書いた予定のため、修正できません"; }
 }
 function showDates(){ const f=v=>v?`${Number(v.slice(5,7))}/${Number(v.slice(8,10))}`:"—";
@@ -579,7 +593,9 @@ async function commit(){
       if(!plan&&!memo){ if(p&&p.kind==="item"){ await store.removeItem(p.id); delete items[p.id]; } else if(p){ $("msg").textContent="メモを入力してください"; return false; } render(); return true; }
       if(p&&p.kind==="range"){ await store.removeRange(p.id); delete ranges[p.id]; }
       const id=(p&&p.kind==="item")?p.id:newId("i-");
-      await store.saveItem(id,{kind:"item",date:cur,plan,memo}); items[id]={date:cur,plan,memo};
+      const yearly=mode==="year", old=(p&&p.kind==="item")?items[id]:null;
+      const date=(yearly&&old&&old.yearly)?old.date:cur; // 毎年の予定は、はじめに入れた日をのこす
+      await store.saveItem(id,{kind:"item",date,plan,memo,yearly}); items[id]={date,plan,memo,yearly};
     }
     render(); return true;
   }catch(err){ $("msg").textContent="保存できませんでした。もう一度お試しください"; return false; }
@@ -633,6 +649,11 @@ $("pNext").addEventListener("click",()=>guarded(async()=>{ if(await commit()){ b
 $("pAdd").addEventListener("click",()=>guarded(async()=>{ if(await commit()){ buildPages(); pi=pages.length; mode="day"; showPage(); $("inPlan").focus(); } }));
 $("mDay").addEventListener("click",()=>{setMode("day");$("msg").textContent="";});
 $("mRange").addEventListener("click",()=>{setMode("range");$("msg").textContent="";});
+$("mYear").addEventListener("click",()=>{setMode("year");$("msg").textContent="";});
+// 新しい予定に「誕生日」と書いたら、自動で「毎年」にする（1日にもどすこともできる）
+let autoYear=false;
+$("inPlan").addEventListener("input",()=>{ if(autoYear||pi<pages.length||mode!=="day") return;
+  if(/誕生日/.test($("inPlan").value)){ autoYear=true; setMode("year"); $("msg").textContent="毎年くりかえす予定にしました"; } });
 
 // 3か月ずつめくる
 function shiftQ(n){ let m=qM+3*n, y=qY; while(m<1){m+=12;y--;} while(m>12){m-=12;y++;} qY=y; qM=m; render(); }
@@ -750,7 +771,7 @@ $("impFile").addEventListener("change",async e=>{
   let add=0, skip=0;
   try{
     for(const [id,v] of Object.entries(obj.items||{})){ if(!v||!okDate(v.date)) continue;
-      const o={date:v.date,plan:String(v.plan||""),memo:String(v.memo||"")}; if(!o.plan&&!o.memo) continue;
+      const o={date:v.date,plan:String(v.plan||""),memo:String(v.memo||""),yearly:!!v.yearly}; if(!o.plan&&!o.memo) continue;
       if(sameI(o)){skip++;continue;} const nid=items[id]?newId("i-"):id;
       await store.saveItem(nid,{kind:"item",...o}); items[nid]=o; add++; }
     for(const [id,v] of Object.entries(obj.ranges||{})){ if(!v||!okDate(v.from)||!okDate(v.to)||v.from>v.to) continue;
@@ -781,7 +802,7 @@ function doFind(){
   for(const [id,v] of Object.entries(items).concat(Object.entries(gItems))){
     const p=v.plan||"", m=v.memo||"";
     if(!kana(p).includes(q)&&!kana(m).includes(q)) continue;
-    res.push({kind:"item",id,date:v.date,name:p||m.split("\n")[0]||"（名前なし）",memo:kana(p).includes(q)?"":snip(m,q),bd:/誕生日/.test(p+m)});
+    res.push({kind:"item",id,date:nextOcc(v),name:p||m.split("\n")[0]||"（名前なし）",memo:kana(p).includes(q)?"":snip(m,q),bd:/誕生日/.test(p+m)});
   }
   for(const [id,r] of Object.entries(ranges).concat(Object.entries(gRanges))){
     const t=r.title||"", m=r.memo||"";
@@ -840,7 +861,7 @@ store={
 };
 // localStorageは保存後の値で書く
 const _si=store.saveItem, _sr=store.saveRange;
-store.saveItem=async(id,o)=>{items[id]={date:o.date,plan:o.plan,memo:o.memo};lsWrite();};
+store.saveItem=async(id,o)=>{items[id]={date:o.date,plan:o.plan,memo:o.memo,yearly:!!o.yearly};lsWrite();};
 store.saveRange=async(id,o)=>{ranges[id]={title:o.title,memo:o.memo,from:o.from,to:o.to};lsWrite();};
 render();
 
@@ -901,8 +922,10 @@ function gConv(e){
 function gBody(id,v,isRange){
   const from=isRange?v.from:v.date, to=isRange?v.to:v.date;
   const name=isRange?(v.title||"（名前なし）"):(v.plan||(v.memo||"").split("\n")[0]||"（名前なし）");
-  return {summary:name,description:v.memo||"",start:{date:from},end:{date:addDays(to,1)},status:"confirmed",
+  const b={summary:name,description:v.memo||"",start:{date:from},end:{date:addDays(to,1)},status:"confirmed",
     extendedProperties:{private:{mono96Id:id}}};
+  if(!isRange&&v.yearly) b.recurrence=[from.slice(5)==="02-29"?"RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1":"RRULE:FREQ=YEARLY"]; // 毎年くりかえす
+  return b;
 }
 async function gEnsureCal(){
   if(G.calId){ try{ await gApi(`/users/me/calendarList/${enc(G.calId)}`); return; }catch(e){ if(e.code!==404&&e.code!==410) throw e; G.calId=null; G.map={}; } }
@@ -927,7 +950,8 @@ async function gSync(interactive){
     const idx={}, gev={};
     for(const e of own){
       const mid=e.extendedProperties&&e.extendedProperties.private&&e.extendedProperties.private.mono96Id;
-      if(mid&&(items[mid]||ranges[mid]||G.map[mid])){ (idx[mid]=idx[mid]||[]).push(e); continue; }
+      if(mid&&(items[mid]||ranges[mid]||G.map[mid])){ const rid=e.recurringEventId||e.id, arr=(idx[mid]=idx[mid]||[]);
+        if(!arr.some(x=>x.id===rid)) arr.push({id:rid}); continue; } // くりかえしの予定は、もとの1件だけを見る
       const v=gConv(e); if(v) gev[G.calId+"|"+e.id]=v; // Googleで 書いた予定（見るだけ）
     }
     // 2) MONO96の予定を 書く・なおす
@@ -1014,7 +1038,7 @@ if(!G.off){ if(G.calId&&gTokOk()) gSync(false); else gStatus("🔄を押すと�
         if(d.id==="pref"){ if(v.theme&&v.theme!==theme){ theme=applyTheme(v.theme); } return; }
         if(v.kind==="range"){nr[d.id]={title:v.title||"",memo:v.memo||"",from:v.from,to:v.to};return;}
         const date=v.date||(/^\d{4}-\d\d-\d\d$/.test(d.id)?d.id:null);
-        if(date&&(v.plan||v.memo)) ni[d.id]={date,plan:v.plan||"",memo:v.memo||""}; });
+        if(date&&(v.plan||v.memo)) ni[d.id]={date,plan:v.plan||"",memo:v.memo||"",yearly:!!v.yearly}; });
       items=ni; ranges=nr; render();
       if(cur&&$("sheet").classList.contains("on")&&!busy){ /* 開いている間は表示をそのままにする */ }
     },()=>{});
