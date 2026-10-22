@@ -256,6 +256,12 @@ label.ck:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2p
 @media (prefers-reduced-motion:reduce){.gsync input,.gsync input::after{transition:none}}
 .ib.spin svg{animation:gsp 1s linear infinite}
 @keyframes gsp{to{transform:rotate(360deg)}}
+/* コピー登録 */
+.cell,.drow{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.copybar{position:fixed;z-index:50;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:fit-content;max-width:calc(100% - 32px);margin:0 auto;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;border-radius:12px;background:var(--ink);color:var(--paper);font-size:13px;font-weight:700;line-height:1.4;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.copybar .ct{min-width:0;white-space:pre-line;overflow-wrap:anywhere}
+.copybar button{flex:none;font:inherit;font-size:13px;font-weight:700;color:var(--ink);background:var(--paper);border:0;border-radius:8px;padding:6px 10px;cursor:pointer}
+.copying .cell{outline:1px dashed var(--sub);outline-offset:-2px}
 </style>
 
 <div id="bgPhoto" hidden></div>
@@ -273,6 +279,7 @@ label.ck:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2p
   <div class="status" id="status" hidden></div>
   <main id="months"></main>
 </div>
+<div class="copybar" id="copyBar" role="status" hidden><span class="ct" id="copyTxt"></span><button type="button" id="copyEnd">やめる</button></div>
 
 <div class="veil" id="veil"></div>
 <div class="sheet" id="setSheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
@@ -288,7 +295,7 @@ label.ck:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2p
     </div></div>
   <label class="gcal gsync"><span>Google Calendarと同期</span><input type="checkbox" role="switch" id="gOn"></label>
   <div class="msg" id="setMsg" style="white-space:pre-line"></div>
-  <div class="ver">v1.1.7</div>
+  <div class="ver">v1.2.0</div>
 </div>
 <div class="sheet" id="findSheet" role="dialog" aria-modal="true" aria-labelledby="findTitle">
   <div class="sh-top"><div class="sh-date" id="findTitle" style="font-size:20px">検索</div><span style="flex:1"></span><button type="button" class="ib" id="findClose" aria-label="閉じる"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -320,6 +327,8 @@ label.ck:has(input:focus-visible){outline:2px solid var(--ink);outline-offset:2p
       <span id="pNum"></span>
       <button type="button" id="pNext" class="ib sm" aria-label="次の予定"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
+    <span style="flex:1"></span>
+    <button type="button" id="pCopy" class="ib" aria-label="この予定をコピー" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg></button>
   </div>
   <div class="kind">
     <div class="seg" role="group" aria-label="日数" id="segBox">
@@ -536,7 +545,8 @@ function render(){
       if(hasMark&&rs.length) b.classList.add("inrs");
       if(hasMark){const dot=document.createElement("span");const bd=its.some(([id,v])=>/誕生日/.test((v.plan||"")+(v.memo||"")));dot.className=bd?"cake":"has";if(bd)dot.textContent="♥";b.appendChild(dot);}
       b.setAttribute("aria-label",`${m}月${d}日 ${DOW[wd]}曜日 ${inf.tags.map(t=>t.t).join(" ")} 予定${its.length+rs.length}件`);
-      b.addEventListener("click",()=>openSheet(s));
+      b.addEventListener("click",()=>{ if(b.dataset.lp){delete b.dataset.lp;return;} copyOn?pasteTo(s):openSheet(s); });
+      onLong(b,()=>cellLong(s));
       g.appendChild(b);
     }
   }
@@ -574,6 +584,10 @@ function showPage(){
   const ro=!isNew&&isG(pages[pi].id);
   ["inPlan","inMemo","inFrom","inTo","mDay","mRange","mYear"].forEach(i=>{$(i).disabled=ro;});
   if(ro){ $("clear").hidden=true; $("msg").textContent="Googleで書いた予定のため、修正できません"; }
+  $("pCopy").hidden=isNew||pages[pi].kind!=="item";
+  if(pasteV&&isNew){ // コピーした予定を入れる（外をタップで保存、×でやめる）
+    setMode(pasteV.yearly?"year":"day"); $("inPlan").value=pasteV.plan||""; $("inMemo").value=pasteV.memo||"";
+    $("msg").textContent="コピーしました。直したら、外をタップして保存"; pasteV=null; }
 }
 function showDates(){ const f=v=>v?`${Number(v.slice(5,7))}/${Number(v.slice(8,10))}`:"—";
   $("tFrom").textContent=f($("inFrom").value); $("tTo").textContent=f($("inTo").value); }
@@ -620,7 +634,8 @@ function showList(){
       mk=bd?'<span class="h">♥</span>':'<span class="d"></span>'; nm=v.plan||(v.memo||"").split("\n")[0]||"（名前なし）"; }
     else { const r=RG(p.id); mk='<span class="r"></span>'; nm=r.title||"（名前なし）"; pd=`${md(r.from)}〜${md(r.to)}`; }
     b.innerHTML=`<span class="mk">${mk}</span><span class="nm">${esc(nm)}</span>${pd?`<span class="pd">${pd}</span>`:""}<span class="go">›</span>`;
-    b.addEventListener("click",()=>showEdit(i));
+    b.addEventListener("click",()=>{ if(b.dataset.lp){delete b.dataset.lp;return;} showEdit(i); });
+    if(p.kind==="item") onLong(b,()=>startCopy(IT(p.id)));
     const w=document.createElement("div"); w.className="lrow";
     if(isG(p.id)){ const sp=document.createElement("span"); sp.className="ckgap"; w.appendChild(sp); } // Googleの予定は見るだけ
     else { const c=document.createElement("label"); c.className="ck";
@@ -660,6 +675,36 @@ let autoYear=false;
 const autoChk=()=>{ if(autoYear||pi<pages.length||mode!=="day") return;
   if(/誕生日/.test($("inPlan").value+$("inMemo").value)){ autoYear=true; setMode("year"); $("msg").textContent="毎年くりかえす予定にしました"; } };
 $("inPlan").addEventListener("input",autoChk); $("inMemo").addEventListener("input",autoChk); // メモに書いても「毎年」にする
+
+// コピー登録：予定を長おし or 📋ボタン → 入れたい日をタップ → 直す画面
+let copyOn=null, pasteV=null;
+function onLong(el,fn){ let t=null,x=0,y=0;
+  const stop=()=>{clearTimeout(t);t=null;};
+  el.addEventListener("pointerdown",e=>{ if(e.button>0) return; x=e.clientX; y=e.clientY; stop();
+    t=setTimeout(()=>{ t=null; el.dataset.lp="1"; setTimeout(()=>{delete el.dataset.lp;},800); try{navigator.vibrate&&navigator.vibrate(30)}catch(_){} fn(); },500); });
+  el.addEventListener("pointermove",e=>{ if(t&&Math.hypot(e.clientX-x,e.clientY-y)>10) stop(); });
+  ["pointerup","pointercancel","pointerleave"].forEach(k=>el.addEventListener(k,stop));
+  el.addEventListener("contextmenu",e=>e.preventDefault());
+}
+function startCopy(v){ if(!v) return;
+  copyOn={plan:v.plan||"",memo:v.memo||"",yearly:!!v.yearly};
+  const nm=copyOn.plan||copyOn.memo.split("\n")[0]||"予定";
+  $("copyTxt").textContent=`📋「${nm}」をコピー中\n入れたい日をタップしてね`;
+  $("copyBar").hidden=false; document.body.classList.add("copying");
+  if(cur) closeSheet();
+}
+function endCopy(){ copyOn=null; $("copyBar").hidden=true; document.body.classList.remove("copying"); }
+$("copyEnd").addEventListener("click",endCopy);
+function pasteTo(s){ if(!copyOn) return; const v=copyOn; endCopy();
+  openSheet(s); pasteV=v; showEdit(pages.length); }
+function cellLong(s){ if(copyOn) return;
+  const its=itemsOn(s);
+  if(its.length===1) startCopy(its[0][1]);
+  else if(its.length>1){ openSheet(s); $("msg").textContent="コピーしたい予定を、長おししてください"; }
+}
+$("pCopy").addEventListener("click",()=>guarded(async()=>{
+  if(pi>=pages.length||pages[pi].kind!=="item") return;
+  const id=pages[pi].id; if(!await commit()) return; const v=IT(id); if(v) startCopy(v); }));
 
 // 3か月ずつめくる
 function shiftQ(n){ let m=qM+3*n, y=qY; while(m<1){m+=12;y--;} while(m>12){m-=12;y++;} qY=y; qM=m; render(); }
